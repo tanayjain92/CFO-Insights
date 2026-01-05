@@ -11,7 +11,7 @@ It uses DuckDB for analytics, LangGraph for orchestration, and a Chroma-based gl
 
 ## Requirements
 - Python 3.11 recommended
-- An Anthropic API key (ping me if you need mine! happy to share it.)
+- An Anthropic API key (ping me if you need mine... happy to share it.)
 
 ## Setup (pip)
 ```bash
