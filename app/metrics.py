@@ -58,14 +58,17 @@ def metric_btwn_yrs(conn, metric, year_a, year_b):
 
 # MetricA, metricB + horizon
 def multi_metrics_over_time(conn, metrics, start_year: Optional[int] = None, end_year: Optional[int] = None):
+    if not metrics:
+        return pd.DataFrame({"error": ["No metrics provided."]})
     available = set(get_table_columns(conn))
     missing = [metric for metric in metrics if metric not in available]
     if missing:
-        error = (
-            "Metrics not found in table: "
-            f"{', '.join(missing)}. Available columns: {', '.join(sorted(available))}."
-        )
-    return pd.DataFrame({"error": [error]})
+        return pd.DataFrame({
+            "error": [
+                "Metrics not found in table: "
+                f"{', '.join(missing)}. Available columns: {', '.join(sorted(available))}."
+            ]
+        })
     # build SELECT list: year + each metric-
     select_cols = ["year"] + metrics
     select_sql = ", ".join(select_cols)
