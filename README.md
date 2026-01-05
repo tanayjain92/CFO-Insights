@@ -15,7 +15,7 @@ It uses DuckDB for analytics, LangGraph for orchestration, and a Chroma-based gl
 
 ## Setup (pip)
 ```bash
-git clone <your-repo-url>
+git clone repo url
 cd finsights
 
 python -m venv .venv
