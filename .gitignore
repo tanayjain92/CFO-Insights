@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environments
+.env
+.venv/
+venv/
+ENV/
+env/
+*.conda
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Streamlit
+.streamlit/
+
+# Outputs
+charts/
+*.png
+
+# Chroma or other vector db persistence
+chroma_glossary/
+chromadb/
+*.sqlite3
+
+# Jupyter
+.ipynb_checkpoints/
