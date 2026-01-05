@@ -44,6 +44,8 @@ def cleaned_data():
          df_cleaned['debt_to_assets_ratio'] = df_cleaned['long_term_debt_millions'] / df_cleaned['total_assets_millions']
     if "op_income_millions" in df_cleaned.columns and "operating_income_millions" not in df_cleaned.columns:
         df_cleaned["operating_income_millions"] = df_cleaned["op_income_millions"]
+    if {"operating_income_millions", "revenue_millions"}.issubset(df_cleaned.columns):
+        df_cleaned["operating_margin"] = df_cleaned["operating_income_millions"] / df_cleaned["revenue_millions"]
 
     # sort by year -
     df_cleaned = df_cleaned.sort_values("year").reset_index(drop = True)
