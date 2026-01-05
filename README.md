@@ -12,6 +12,8 @@ It uses DuckDB for analytics, LangGraph for orchestration, and a Chroma-based gl
 ## Requirements
 - Python 3.11 recommended
 - An Anthropic API key (ping me if you need mine... happy to share it.)
+-.env file in project root should have: ANTHROPIC_API_KEY = xx 
+-run streamlit run app.py
 
 ## Setup (pip)
 ```bash
