@@ -3,7 +3,7 @@ from typing import Optional, List
 from langchain_core.tools import StructuredTool
 from .rag_glossary import get_glossary_retriever
 from .metrics import metric_over_time, multi_metrics_over_time
-from .db import run_sql
+from .db import run_sql, get_table_columns
 from .charts import plot_metric_over_time
 from .config import base_dir
 import os
@@ -42,8 +42,13 @@ class MultiMetricsOverTimeInput(BaseModel):
 class SQLQueryInput(BaseModel):
     query: str = Field(
         ...,
-        description = "A valid SQL query over the data table. Example: 'SELECT year, revenue_millions FROM apple_financials WHERE year >= 2015'.")    
+        description = "A valid SQL query over the apple_financials   table. Example: 'SELECT year, revenue_millions FROM apple_financials WHERE year >= 2015'.")    
 
+class SchemaInfoInput(BaseModel):
+    table_name: str = Field(
+        default="apple_financials",
+        description="Table name to describe. Default is apple_financials.")
+    
 class PlotMetricOverTimeInput(BaseModel):
     metric: str = Field(
         ...,
@@ -145,6 +150,22 @@ def create_sql_query_tool(conn):
         description = "Use to run custom SQL queries over the data table with complex filters, conditions, joins.",
         args_schema=SQLQueryInput
         )
+    return tool
+
+# Schema tool
+def create_schema_info_tool(conn):
+    if conn is None:
+        raise ValueError("Connection is None. Call duckdb_connection() and table_registration() properly.")
+    def run(table_name: str = "apple_financials"):
+        columns = get_table_columns(conn, table_name)
+        return {"table_name": table_name, "columns": columns}
+
+    tool = StructuredTool.from_function(
+        func=run,
+        name="schema_info_tool",
+        description="Returns available columns for a table so you can build valid SQL queries.",
+        args_schema=SchemaInfoInput,
+    )
     return tool
 
 # PlotMetricOverTime tool

@@ -1,8 +1,16 @@
 from typing import Optional
-from .db import run_sql
+from .db import run_sql, get_table_columns
+import pandas as pd
 
 # Metric from yearA to yearB
 def metric_over_time(conn, metric, start_year: Optional[int] = None, end_year: Optional[int] = None):
+    available = set(get_table_columns(conn))
+    if metric not in available:
+        error = (
+            f"Metric '{metric}' not found in table. Available columns: "
+            f"{', '.join(sorted(available))}."
+            )
+        return pd.DataFrame({"error": [error]})
     where_clauses = ["1=1"]
     if start_year is not None:
         where_clauses.append(f"year >= {int(start_year)}")
@@ -50,6 +58,14 @@ def metric_btwn_yrs(conn, metric, year_a, year_b):
 
 # MetricA, metricB + horizon
 def multi_metrics_over_time(conn, metrics, start_year: Optional[int] = None, end_year: Optional[int] = None):
+    available = set(get_table_columns(conn))
+    missing = [metric for metric in metrics if metric not in available]
+    if missing:
+        error = (
+            "Metrics not found in table: "
+            f"{', '.join(missing)}. Available columns: {', '.join(sorted(available))}."
+        )
+    return pd.DataFrame({"error": [error]})
     # build SELECT list: year + each metric-
     select_cols = ["year"] + metrics
     select_sql = ", ".join(select_cols)

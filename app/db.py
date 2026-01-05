@@ -11,14 +11,20 @@ def duckdb_connection(db_path = ":memory:"):
 def table_registration(conn):
     df = cleaned_data()
     conn.register("apple_financials", df)
-    conn.register("financials", df)
-    conn.register("data_table", df) 
+
+def get_table_columns(conn, table_name: str = "apple_financials"):
+    info = conn.execute(f"PRAGMA table_info('{table_name}')").df()
+    if "name" not in info.columns:
+        return []
+    return info["name"].tolist()
         
 def run_sql(conn, query):
     try:
         output_table = conn.execute(query).df()
         return output_table
-    except (duckdb.InternalError, AttributeError) as e:
-        error = f"SQL query failed. Error: {str(e).splitlines()[0]}."
+    except (duckdb.Error, AttributeError) as e:
+        columns = get_table_columns(conn)
+        columns_hint = f" Available columns: {', '.join(columns)}." if columns else ""
+        error = f"SQL query failed. Error: {str(e).splitlines()[0]}.{columns_hint}"
         print(error)
         return pd.DataFrame({"error": [error]}) 

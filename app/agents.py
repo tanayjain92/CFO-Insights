@@ -31,8 +31,11 @@ def create_analyst_agent(tools):
     prompt = ChatPromptTemplate.from_messages([
         ("system",
          "You are an expert Apple financial analyst. "
+         "Call the schema_info_tool first to see available columns"
          "Use the tools to fetch accurate historical data from the horizon presented in the data. "
          "Prefer metric tools for standard trends and the SQL tool for complex filters. "
+         "If a requested metric is not in schema, use SQL to compute it from available columns. "
+         "Use only the apple_financials table name in SQL. "
          "Always explain your reasoning in clear, logical CFO-friendly language."),
         ("human", "{input}"),
         MessagesPlaceholder("agent_scratchpad")
@@ -51,8 +54,11 @@ def create_chart_agent(tools):
         ("system",
          "You are a data visualization expert. "
          "Create clear charts and briefly explain insights. "
+         "Always call the schema_info_tool first to see available columns. "
          "Use plotting tools to generate charts whenever prompted by the user for visuals. "
          "Use metric tools to fetch data if/when needed. "
+         "If a requested metric is not in the schema, use SQL to compute it from available columns. "
+         "Use only the apple_financials table name in SQL. "
          "Keep explanations concise and focus attention on what the chart(s) show."),
         ("human", "{input}"),
         MessagesPlaceholder("agent_scratchpad")

@@ -1,6 +1,6 @@
 from typing import TypedDict, Any, List, Optional
 from langgraph.graph import StateGraph, END
-from .tools import create_glossary_rag_tool, create_metric_over_time_tool, create_multi_metrics_over_time_tool, create_sql_query_tool, create_plot_metric_over_time_tool
+from .tools import create_glossary_rag_tool, create_metric_over_time_tool, create_multi_metrics_over_time_tool, create_sql_query_tool, create_plot_metric_over_time_tool, create_schema_info_tool
 from .agents import create_glossary_agent, create_analyst_agent, create_chart_agent, create_router_chain
 from .config import data_dir
 
@@ -24,9 +24,10 @@ def create_app_graph(conn):
     multi_metric_tool = create_multi_metrics_over_time_tool(conn)
     sql_tool = create_sql_query_tool(conn)
     plot_tool = create_plot_metric_over_time_tool(conn)
+    schema_tool = create_schema_info_tool(conn)
     # tool sets per agent -
-    analyst_tools = [metric_tool, multi_metric_tool, sql_tool]
-    chart_tools = [metric_tool, multi_metric_tool, sql_tool, plot_tool]
+    analyst_tools = [schema_tool, metric_tool, multi_metric_tool, sql_tool]
+    chart_tools = [schema_tool, metric_tool, multi_metric_tool, sql_tool, plot_tool]
     glossary_tools = [glossary_tool]
     
     # router + agents -
