@@ -46,6 +46,8 @@ def cleaned_data():
         df_cleaned["operating_income_millions"] = df_cleaned["op_income_millions"]
     if {"operating_income_millions", "revenue_millions"}.issubset(df_cleaned.columns):
         df_cleaned["operating_margin"] = df_cleaned["operating_income_millions"] / df_cleaned["revenue_millions"]
+    if {"gross_profit_millions", "revenue_millions"}.issubset(df_cleaned.columns):
+        df_cleaned["gross_profit_margin"] = df_cleaned["gross_profit_millions"] / df_cleaned["revenue_millions"]        
 
     # sort by year -
     df_cleaned = df_cleaned.sort_values("year").reset_index(drop = True)
