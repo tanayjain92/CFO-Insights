@@ -12,7 +12,7 @@ def table_registration(conn):
     df = cleaned_data()
     conn.register("apple_financials", df)
     conn.register("financials", df)
-    conn.register("data_table", df)
+    conn.register("data_table", df) 
         
 def run_sql(conn, query):
     try:
