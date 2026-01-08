@@ -16,9 +16,9 @@ It combines DuckDB SQL analytics, LangGraph orchestration, and a Chroma-backed g
 - Git
 
 ## Data
-The app ships with the required data files:
-- `data/apple_2009-2024.csv`
-- `data/glossary_apple_finance.md`
+The app uses the following required data files:
+- `data/apple_2009-2024.csv (main data set)`
+- `data/glossary_apple_finance.md (RAG definition glossary)`
 
 ## Setup
 
@@ -57,3 +57,12 @@ ANTHROPIC_API_KEY="please enter your anthropic key here"
 streamlit run app.py
 ```
 Then open the local URL printed by Streamlit
+
+## Screenshots
+**Operating income vs. net income (2015–2024)**
+
+(screenshots/Multimetric_chart.png)
+
+**EBITDA (RAG glossary)**
+
+(screenshots/RAG.png)
