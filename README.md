@@ -1,6 +1,6 @@
 # CFO Insights – Apple Financials
 
-CFO Insights is a Streamlit app for exploring Apple’s annual financials (2009–2024) with grounded, data-backed answers. 
+CFO Insights is an agenticAI Streamlit app for exploring Apple’s annual financials (2009–2024) with grounded, data-backed answers. 
 It combines DuckDB SQL analytics, LangGraph orchestration, and a Chroma-backed glossary RAG retriever to deliver metrics, trends, and clear financial definitions.
 
 ## Features
