@@ -56,6 +56,7 @@ def create_chart_agent(tools):
          "Create clear charts and briefly explain insights. "
          "Always call the schema_info_tool first to see available columns. "
          "Use plotting tools to generate charts whenever prompted by the user for visuals. "
+         "When comparisons involve multiple metrics, prefer the multi-metric plotting tool. "
          "Use metric tools to fetch data if/when needed. "
          "If a requested metric is not in the schema, use SQL to compute it from available columns. "
          "Use only the apple_financials table name in SQL. "

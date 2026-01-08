@@ -4,7 +4,7 @@ from langchain_core.tools import StructuredTool
 from .rag_glossary import get_glossary_retriever
 from .metrics import metric_over_time, multi_metrics_over_time
 from .db import run_sql, get_table_columns
-from .charts import plot_metric_over_time
+from .charts import plot_metric_over_time, plot_multi_metrics
 from .config import base_dir
 import os
 import uuid
@@ -53,6 +53,20 @@ class PlotMetricOverTimeInput(BaseModel):
     metric: str = Field(
         ...,
         description = "Metric to plot over time. Examples: 'revenue_millions', 'net_income_millions', 'eps'.")
+    start_year: Optional[int] = Field(
+        None,
+        description = "First year inclusive. If blank/omitted, use earliest year.")
+    end_year: Optional[int] = Field(
+        None,
+        description = "Last year inclusive. If blank/omitted, use latest year.")
+    title: Optional[str] = Field(
+        None,
+        description= "Optional chart title.")
+
+class PlotMultiMetricsOverTimeInput(BaseModel):
+    metrics: List[str] = Field(
+        ...,
+        description = "List of metrics to plot over time. Examples: ['revenue_millions', 'net_income_millions', 'eps'].")
     start_year: Optional[int] = Field(
         None,
         description = "First year inclusive. If blank/omitted, use earliest year.")
@@ -200,5 +214,38 @@ def create_plot_metric_over_time_tool(conn, charts_dir = None):
         description=(
             "Generates a time-series line chart for a metric over years and return a file path to the saved chart image and the underlying data."),
         args_schema=PlotMetricOverTimeInput,
+    )
+    return tool
+
+# PlotMultiMetricsOverTime tool
+def create_plot_multi_metrics_over_time_tool(conn, charts_dir=None):
+    if charts_dir is None:
+        charts_dir = str((base_dir/"charts").resolve())
+    os.makedirs(charts_dir, exist_ok=True)
+    if conn is None:
+        raise ValueError("Connection is None. call duckdb_connection() and table_registration() properly.")
+    def run(metrics, start_year=None, end_year=None, title=None):
+        fig, df = plot_multi_metrics(conn, metrics, start_year, end_year, title=title or "Financial Comparison")
+        if fig is None or df is None:
+            return {"error": "Plot function returned no figure/data."}
+        if hasattr(df, "columns") and "error" in df.columns:
+            return {"error": str(df.loc[0, "error"])}
+        if getattr(df, "empty", False):
+            return {"error": "No data returned for that metric/year range."}
+        filename = f"multi_{uuid.uuid4().hex}.png"
+        image_path = os.path.join(charts_dir, filename)
+        fig.savefig(image_path, bbox_inches="tight")
+        plt.close(fig)
+        return {
+            "image_path": image_path,
+            "data": df.to_dict(orient="records"),
+        }
+
+    tool = StructuredTool.from_function(
+        func=run,
+        name="plot_multi_metrics_over_time_tool",
+        description=(
+            "Generates a time-series line chart for multiple metrics over years and return a file path to the saved chart image and the underlying data."),
+        args_schema=PlotMultiMetricsOverTimeInput,
     )
     return tool

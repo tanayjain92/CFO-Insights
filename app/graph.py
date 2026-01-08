@@ -1,6 +1,6 @@
 from typing import TypedDict, Any, List, Optional
 from langgraph.graph import StateGraph, END
-from .tools import create_glossary_rag_tool, create_metric_over_time_tool, create_multi_metrics_over_time_tool, create_sql_query_tool, create_plot_metric_over_time_tool, create_schema_info_tool
+from .tools import create_glossary_rag_tool, create_metric_over_time_tool, create_multi_metrics_over_time_tool, create_sql_query_tool, create_plot_metric_over_time_tool, create_schema_info_tool, create_plot_multi_metrics_over_time_tool
 from .agents import create_glossary_agent, create_analyst_agent, create_chart_agent, create_router_chain
 from .config import data_dir
 
@@ -24,10 +24,11 @@ def create_app_graph(conn):
     multi_metric_tool = create_multi_metrics_over_time_tool(conn)
     sql_tool = create_sql_query_tool(conn)
     plot_tool = create_plot_metric_over_time_tool(conn)
+    plot_multi_tool = create_plot_multi_metrics_over_time_tool(conn)
     schema_tool = create_schema_info_tool(conn)
     # tool sets per agent -
     analyst_tools = [schema_tool, metric_tool, multi_metric_tool, sql_tool]
-    chart_tools = [schema_tool, metric_tool, multi_metric_tool, sql_tool, plot_tool]
+    chart_tools = [schema_tool, metric_tool, multi_metric_tool, sql_tool, plot_tool, plot_multi_tool]
     glossary_tools = [glossary_tool]
     
     # router + agents -
@@ -50,13 +51,12 @@ def create_app_graph(conn):
         route_label = router_chain.run(input=question).strip().lower().strip("`'\" .,\n\t")
         route_label = route_label.split()[0]
         q = question.lower()
-        is_comparison = (" vs " in q) or (" versus " in q) or ("compare" in q)
         chart_triggers = ("plot", "chart", "graph", "visualize", "trend", "over time", "line chart", "bar chart")
         definition_triggers = ("define", "definition", "meaning of", "what is ", "what does ")
-        if (not is_comparison) and any(t in q for t in chart_triggers):
-            route_label = "analysis_with_chart"
-        elif any(t in q for t in definition_triggers) and "what was" not in q:
+        if any(t in q for t in definition_triggers) and "what was" not in q and not any(t in q for t in chart_triggers):
             route_label = "definition"
+        elif any(t in q for t in chart_triggers):
+            route_label = "analysis_with_chart"
         else:
             route_label = "analysis"
         allowed = {"analysis", "analysis_with_chart", "definition", "other"}
