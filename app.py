@@ -8,14 +8,20 @@ def get_graph():
 
 def extract_chart_paths(result):
     paths = []
+    seen = set()
+    image_path = result.get("image_path")
+    if image_path and os.path.exists(image_path):
+        paths.append(image_path)
+        seen.add(image_path)
     steps = result.get("intermediate_steps", [])
     for action, observation in steps:
         tool_name = getattr(action, "tool", "")
-        if tool_name == "plot_metric_over_time_tool":
+        if tool_name in {"plot_metric_over_time_tool", "plot_multi_metrics_over_time_tool"}:
             if isinstance(observation, dict):
                 img_path = observation.get("image_path")
-                if img_path and os.path.exists(img_path):
+                if img_path and os.path.exists(img_path) and img_path not in seen:
                     paths.append(img_path)
+                    seen.add(img_path)
     return paths
 
 def main():

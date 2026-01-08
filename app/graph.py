@@ -1,5 +1,7 @@
+import re
 from typing import TypedDict, Any, List, Optional
 from langgraph.graph import StateGraph, END
+from .db import get_table_columns
 from .tools import create_glossary_rag_tool, create_metric_over_time_tool, create_multi_metrics_over_time_tool, create_sql_query_tool, create_plot_metric_over_time_tool, create_schema_info_tool, create_plot_multi_metrics_over_time_tool
 from .agents import create_glossary_agent, create_analyst_agent, create_chart_agent, create_router_chain
 from .config import data_dir
@@ -14,6 +16,47 @@ class GraphState(TypedDict, total = False):
     chart_steps: List[Any]
     image_path: Optional[str]
     glossary_result: str
+    
+def extract_year_bounds(question: str):             # fallback 1 if chart doesnt show image
+    years = [int(year) for year in re.findall(r"\b(19\d{2}|20\d{2})\b", question)]
+    if not years:
+        return None, None
+    if len(years) == 1:
+        return years[0], None
+    return min(years), max(years)
+
+def resolve_metrics_from_question(question: str, available_columns: List[str]) -> List[str]: #fallback 1 functioon to hardcode aliases
+    q = question.lower()
+    available = set(available_columns)
+    aliases = {
+        "operating income": "operating_income_millions",
+        "op income": "operating_income_millions",
+        "net income": "net_income_millions",
+        "revenue": "revenue_millions",
+        "gross profit": "gross_profit_millions",
+        "ebitda": "ebitda_millions",
+        "gross margin": "gross_margin",
+        "net profit margin": "net_profit_margin",
+        "operating margin": "operating_margin",
+        "cash": "cash_on_hand_millions",
+        "cash on hand": "cash_on_hand_millions",
+        "long term debt": "long_term_debt_millions",
+        "total assets": "total_assets_millions",
+        "total liabilities": "total_liabilities_millions",
+        "shares outstanding": "shares_outstanding",
+        "employees": "employees",
+        "eps": "eps",
+        "pe ratio": "pe_ratio",
+    }
+    metrics = []
+    for phrase, column in aliases.items():
+        if phrase in q and column in available:
+            metrics.append(column)
+    for column in available:
+        if column in q and column not in metrics:
+            metrics.append(column)
+    return metrics
+
 
 # ------------- Graph factory -------------
 def create_app_graph(conn):
@@ -51,7 +94,7 @@ def create_app_graph(conn):
         route_label = router_chain.run(input=question).strip().lower().strip("`'\" .,\n\t")
         route_label = route_label.split()[0]
         q = question.lower()
-        chart_triggers = ("plot", "chart", "graph", "visualize", "trend", "over time", "line chart", "bar chart")
+        chart_triggers = ("plot", "chart", "graph", "visualize", "trend", "over time", "line chart", "bar chart", "compare", "versus", " vs ")
         definition_triggers = ("define", "definition", "meaning of", "what is ", "what does ")
         if any(t in q for t in definition_triggers) and "what was" not in q and not any(t in q for t in chart_triggers):
             route_label = "definition"
@@ -86,6 +129,28 @@ def create_app_graph(conn):
         for action, obs in steps:
             if isinstance(obs, dict) and "image_path" in obs:
                 image_path = obs["image_path"]
+        if image_path is None:                                  ###### main fallback path image failure bug?
+            available_columns = get_table_columns(conn)
+            metrics = resolve_metrics_from_question(question, available_columns)
+            start_year, end_year = extract_year_bounds(question)
+            if len(metrics) >= 2:
+                fallback = plot_multi_tool.invoke({
+                    "metrics": metrics[:3],
+                    "start_year": start_year,
+                    "end_year": end_year,
+                    "title": "Financial Comparison",
+                })
+                if isinstance(fallback, dict):
+                    image_path = fallback.get("image_path")
+            elif len(metrics) == 1:
+                fallback = plot_tool.invoke({
+                    "metric": metrics[0],
+                    "start_year": start_year,
+                    "end_year": end_year,
+                    "title": None,
+                })
+                if isinstance(fallback, dict):
+                    image_path = fallback.get("image_path")
         return {
             "chart_result": out,
             "chart_steps": steps,
