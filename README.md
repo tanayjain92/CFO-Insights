@@ -61,7 +61,7 @@ Then open the local URL printed by Streamlit
 ## Screenshots
 **Operating income vs. net income (2015–2024)**
 
-![Operating income vs. net income (2015–2024)](screenshots/Multimetric_chart.png)
+![Operating income vs. net income (2015–2024)](screenshots/multimetric_chart.png)
 
 **EBITDA (RAG glossary)**
 
