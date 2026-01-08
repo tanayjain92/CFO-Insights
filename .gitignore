@@ -23,10 +23,13 @@ Thumbs.db
 charts/
 *.png
 
-# Chroma or other vector db persistence
+# Chroma + vectordb persistence
 chroma_glossary/
 chromadb/
 *.sqlite3
 
 # Jupyter
 .ipynb_checkpoints/
+
+# keep screenshots 
+!screenshots/*.png
