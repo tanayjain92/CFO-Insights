@@ -31,9 +31,9 @@ cd CFO-Insights
 ### 2) Create and activate a virtual environment
 
 **Windows (PowerShell)**
-```powershell
+```bash
 py -3.11 -m venv .venv
-.venv\Scripts\Activate.ps1
+.venv\Scripts\activate.bat
 ```
 **macOS/Linux**
 ```bash
